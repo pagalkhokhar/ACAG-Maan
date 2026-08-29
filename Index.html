@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration Checklist</title>
+<style>
+  :root{
+    --bg:#F4F1EA;
+    --card:#FFFFFF;
+    --ink:#2C2A26;
+    --sub:#7A756B;
+    --accent:#0F6E56;
+    --accent-light:#E1F5EE;
+    --border:#E4E0D6;
+    --danger:#D85A30;
+    --blue:#185FA5;
+    --blue-light:#E6F1FB;
+    --green:#3B6D11;
+    --green-light:#EAF3DE;
+    --orange:#854F0B;
+    --orange-light:#FAEEDA;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:20px 12px 60px;
+  }
+  .app{width:100%;max-width:440px;}
+  h1{font-size:20px;font-weight:600;margin:4px 0 18px;text-align:center;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:18px;
+  }
+  label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px;}
+  label:first-child{margin-top:0;}
+  input{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:15px;
+    background:#FAFAF7;
+    color:var(--ink);
+  }
+  input:focus{outline:none;border-color:var(--accent);}
+  button.add{
+    width:100%;
+    margin-top:16px;
+    padding:12px;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.add:active{opacity:.85;}
+  .section-title{
+    font-size:14px;
+    font-weight:600;
+    color:var(--sub);
+    margin:0 0 8px 4px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .count{
+    background:var(--accent-light);
+    color:var(--accent);
+    border-radius:20px;
+    padding:1px 9px;
+    font-size:12px;
+  }
+  .section-title.blue{color:var(--blue);}
+  .section-title.green{color:var(--green);}
+  .section-title.orange{color:var(--orange);}
+  .count.blue{background:var(--blue-light);color:var(--blue);}
+  .count.green{background:var(--green-light);color:var(--green);}
+  .count.orange{background:var(--orange-light);color:var(--orange);}
+  .item{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-left:4px solid var(--border);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:8px;
+  }
+  .item.blue{border-left-color:var(--blue);}
+  .item.green{border-left-color:var(--green);}
+  .item.orange{border-left-color:var(--orange);}
+  .item .info{flex:1;}
+  .item .name{font-weight:600;font-size:15px;}
+  .item .meta{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5;}
+  .actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .yn{
+    border:none;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;
+    cursor:pointer;color:#fff;
+  }
+  .yn.yes{background:var(--green);}
+  .yn.no{background:var(--orange);}
+  .yn.undo{background:var(--sub);}
+  .yn:active{opacity:.85;}
+  .del{
+    background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;
+    padding:2px 4px;line-height:1;
+  }
+  .empty{
+    text-align:center;color:var(--sub);font-size:13px;padding:14px 0;
+  }
+  .error{color:var(--danger);font-size:12px;margin-top:6px;display:none;}
+  .scan-card{border-color:var(--blue);}
+  .scan-btn{background:var(--blue) !important;}
+  .scan-status{font-size:12px;color:var(--sub);margin-top:8px;min-height:14px;}
+  .scan-status.ok{color:var(--green);}
+  .scan-status.bad{color:var(--danger);}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Registration Checklist</h1>
+
+  <div class="card scan-card">
+    <label style="margin:0;">Scan CNIC / picture / PDF</label>
+    <input id="scan-file" type="file" accept="image/*,application/pdf" style="margin-top:8px;">
+    <button class="add scan-btn" onclick="scanFile()">Scan and fill form</button>
+    <div class="scan-status" id="scan-status"></div>
+  </div>
+
+  <div class="card">
+    <label>Name</label>
+    <input id="f-name" type="text" placeholder="Full name">
+
+    <label>Address</label>
+    <input id="f-address" type="text" placeholder="Address">
+
+    <label>Phone Number</label>
+    <input id="f-phone" type="tel" placeholder="03XX-XXXXXXX">
+
+    <label>CNIC</label>
+    <input id="f-cnic" type="text" placeholder="XXXXX-XXXXXXX-X">
+
+    <div class="error" id="form-error">Please fill all fields.</div>
+    <button class="add" onclick="addEntry()">Add to list</button>
+  </div>
+
+  <div class="section-title blue">Blue list <span class="count blue" id="blue-count">0</span></div>
+  <div id="blue-list"></div>
+
+  <div class="section-title green" style="margin-top:22px;">Green list <span class="count green" id="green-count">0</span></div>
+  <div id="green-list"></div>
+
+  <div class="section-title orange" style="margin-top:22px;">Orange list <span class="count orange" id="orange-count">0</span></div>
+  <div id="orange-list"></div>
+</div>
+
+<script>
+let entries = [];
+
+async function load(){
+  try{
+    const res = await window.storage.get('entries', false);
+    entries = res ? JSON.parse(res.value) : [];
+  }catch(e){
+    entries = [];
+  }
+  render();
+}
+
+async function save(){
+  try{
+    await window.storage.set('entries', JSON.stringify(entries), false);
+  }catch(e){
+    console.error('Save failed', e);
+  }
+}
+
+function addEntry(){
+  const name = document.getElementById('f-name').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const cnic = document.getElementById('f-cnic').value.trim();
+  const err = document.getElementById('form-error');
+
+  if(!name || !address || !phone || !cnic){
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+
+  entries.push({
+    id: Date.now().toString(),
+    name, address, phone, cnic,
+    status: 'blue'
+  });
+
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-address').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-cnic').value = '';
+
+  save();
+  render();
+}
+
+function decide(id, answer){
+  const e = entries.find(x => x.id === id);
+  if(e){ e.status = (answer === 'yes') ? 'green' : 'orange'; save(); render(); }
+}
+
+function backToBlue(id){
+  const e = entries.find(x => x.id === id);
+  if(e){ e.status = 'blue'; save(); render(); }
+}
+
+function removeEntry(id){
+  entries = entries.filter(x => x.id !== id);
+  save();
+  render();
+}
+
+function itemHTML(e){
+  const actions = e.status === 'blue'
+    ? `<div class="actions">
+         <button class="yn yes" onclick="decide('${e.id}','yes')">Yes</button>
+         <button class="yn no" onclick="decide('${e.id}','no')">No</button>
+       </div>`
+    : `<div class="actions">
+         <button class="yn undo" onclick="backToBlue('${e.id}')">Undo</button>
+         <button class="del" aria-label="Delete" onclick="removeEntry('${e.id}')">&times;</button>
+       </div>`;
+
+  return `<div class="item ${e.status}">
+    <div class="info">
+      <div class="name">${escapeHTML(e.name)}</div>
+      <div class="meta">
+        ${escapeHTML(e.address)}<br>
+        ${escapeHTML(e.phone)} &middot; CNIC: ${escapeHTML(e.cnic)}
+      </div>
+    </div>
+    ${actions}
+  </div>`;
+}
+
+function escapeHTML(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(){
+  const blue = entries.filter(e => e.status === 'blue');
+  const green = entries.filter(e => e.status === 'green');
+  const orange = entries.filter(e => e.status === 'orange');
+
+  document.getElementById('blue-count').textContent = blue.length;
+  document.getElementById('green-count').textContent = green.length;
+  document.getElementById('orange-count').textContent = orange.length;
+
+  document.getElementById('blue-list').innerHTML =
+    blue.length ? blue.map(itemHTML).join('') : '<div class="empty">No entries yet.</div>';
+
+  document.getElementById('green-list').innerHTML =
+    green.length ? green.map(itemHTML).join('') : '<div class="empty">No entries yet.</div>';
+
+  document.getElementById('orange-list').innerHTML =
+    orange.length ? orange.map(itemHTML).join('') : '<div class="empty">No entries yet.</div>';
+}
+
+load();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<script>
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+function setScanStatus(msg, cls){
+  const el = document.getElementById('scan-status');
+  el.textContent = msg;
+  el.className = 'scan-status' + (cls ? ' ' + cls : '');
+}
+
+async function fileToImageCanvas(file){
+  if(file.type === 'application/pdf'){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({scale: 2});
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({canvasContext: canvas.getContext('2d'), viewport}).promise;
+    return canvas;
+  }
+  return await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      resolve(canvas);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function extractFields(text){
+  const cnicMatch = text.match(/\d{5}[\s-]?\d{7}[\s-]?\d{1}/);
+  const cnic = cnicMatch ? cnicMatch[0].replace(/\s/g,'').replace(/(\d{5})(\d{7})(\d)/, '$1-$2-$3') : '';
+
+  const phoneMatch = text.match(/(?:\+?92[\s-]?)?0?3\d{2}[\s-]?\d{7}/);
+  let phone = '';
+  if(phoneMatch){
+    const digits = phoneMatch[0].replace(/\D/g,'').slice(-10);
+    phone = '0' + digits.slice(0,3) + '-' + digits.slice(3);
+  }
+
+  let name = '';
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  for(let i = 0; i < lines.length; i++){
+    if(/name/i.test(lines[i]) && !/father|husband/i.test(lines[i])){
+      const after = lines[i].split(/name/i)[1];
+      if(after && after.replace(/[:\s]/g,'').length > 1){
+        name = after.replace(/^[:\s]+/, '').trim();
+      } else if(lines[i+1]){
+        name = lines[i+1].trim();
+      }
+      break;
+    }
+  }
+
+  return {name, cnic, phone};
+}
+
+async function scanFile(){
+  const fileInput = document.getElementById('scan-file');
+  const file = fileInput.files[0];
+  if(!file){
+    setScanStatus('Pehle koi picture ya PDF select karein.', 'bad');
+    return;
+  }
+
+  try{
+    setScanStatus('Scanning... please wait.');
+    const canvas = await fileToImageCanvas(file);
+    const result = await Tesseract.recognize(canvas, 'eng');
+    const text = result.data.text;
+    const fields = extractFields(text);
+
+    if(fields.name) document.getElementById('f-name').value = fields.name;
+    if(fields.cnic) document.getElementById('f-cnic').value = fields.cnic;
+    if(fields.phone) document.getElementById('f-phone').value = fields.phone;
+
+    if(fields.name || fields.cnic || fields.phone){
+      setScanStatus('Scan complete. Fields bhar diye gaye hain, address khud likh kar check kar lein.', 'ok');
+    }else{
+      setScanStatus('Text detect nahi ho saka, fields manually bharein.', 'bad');
+    }
+  }catch(err){
+    console.error(err);
+    setScanStatus('Scan fail ho gaya, dobara koshish karein.', 'bad');
+  }
+}
+</script>
+</body>
+</html>
